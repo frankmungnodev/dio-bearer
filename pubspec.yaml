@@ -1,0 +1,19 @@
+name: dio_bearer
+description: "A new Flutter package project."
+version: 0.0.1
+homepage: https://github.com/frankmungnodev/dio_oauth2_handler
+
+environment:
+  sdk: ^3.9.0
+  flutter: ">=1.17.0"
+
+dependencies:
+  dio: ^5.9.0
+  flutter:
+    sdk: flutter
+  flutter_secure_storage: ^9.2.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
