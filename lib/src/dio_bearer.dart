@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -8,15 +9,13 @@ class DioBearer extends QueuedInterceptor {
     bool handleRefreshToken = false,
     bool useEncryptedSharedPreferences = true,
     required List<String> accessTokenPaths,
-    String? accessTokenKey,
-    String? refreshTokenKey,
-    String? refreshTokenPath,
+    String accessTokenKey = "access_token",
+    String refreshTokenKey = "refresh_token",
     String refreshTokenMethod = "POST",
+    String? refreshTokenPath,
     Dio? refreshTokenClient,
   }) : assert(
-         handleRefreshToken
-             ? (refreshTokenKey != null && refreshTokenKey.isNotEmpty)
-             : true,
+         handleRefreshToken ? (refreshTokenKey.isNotEmpty) : true,
          "Refresh token key must be provided to use refresh token mechanisms",
        ),
        assert(
@@ -43,9 +42,9 @@ class DioBearer extends QueuedInterceptor {
        ),
        _handleRefreshToken = handleRefreshToken,
        _useEncryptedSharedPreferences = useEncryptedSharedPreferences,
-       _accessTokenRoutes = accessTokenPaths,
-       _accessTokenKey = accessTokenKey ?? "access_token",
-       _refreshTokenKey = refreshTokenKey ?? "refresh_token",
+       _accessTokenPaths = accessTokenPaths,
+       _accessTokenKey = accessTokenKey,
+       _refreshTokenKey = refreshTokenKey,
        _refreshTokenPath = refreshTokenPath,
        _refreshTokenMethod = refreshTokenMethod.toUpperCase(),
        _refreshTokenClient = refreshTokenClient {
@@ -66,7 +65,7 @@ class DioBearer extends QueuedInterceptor {
 
   final bool _handleRefreshToken;
   final bool _useEncryptedSharedPreferences;
-  final List<String> _accessTokenRoutes;
+  final List<String> _accessTokenPaths;
   final String _accessTokenKey;
   final String _refreshTokenKey;
   final String _refreshTokenMethod;
@@ -121,6 +120,11 @@ class DioBearer extends QueuedInterceptor {
       return;
     }
 
+    if (_accessTokenPaths.contains(err.requestOptions.path)) {
+      handler.next(err);
+      return;
+    }
+
     // Try to refresh the token and retry the request
     try {
       final newAccessToken = await _refreshAccessToken();
@@ -136,7 +140,8 @@ class DioBearer extends QueuedInterceptor {
 
       final response = await _refreshTokenClient!.fetch(requestOptions);
       handler.resolve(response);
-    } catch (e) {
+    } catch (e, s) {
+      log("error refresh access token: ", error: e, stackTrace: s);
       // If refresh fails, pass the original error
       handler.next(err);
     }
@@ -147,7 +152,7 @@ class DioBearer extends QueuedInterceptor {
     Response response,
     ResponseInterceptorHandler handler,
   ) async {
-    if (!_accessTokenRoutes.contains(response.requestOptions.path)) {
+    if (!_accessTokenPaths.contains(response.requestOptions.path)) {
       handler.next(response);
       return;
     }
@@ -226,7 +231,9 @@ class DioBearer extends QueuedInterceptor {
       _notifyPendingRequests(newAccessToken);
 
       return newAccessToken;
-    } on DioException catch (e) {
+    } on DioException catch (e, s) {
+      log("error refresh access token: ", error: e, stackTrace: s);
+
       final statusCode = e.response?.statusCode;
       if (statusCode != null && statusCode >= 400 && statusCode < 499) {
         await _clearTokens();

@@ -12,40 +12,35 @@ A Dio interceptor for automatic Bearer token management with refresh token suppo
 
 ## Installation
 
-```yaml
-dependencies:
-  dio: ^5.0.0
-  flutter_secure_storage: ^9.0.0
+```bash
+flutter pub add dio_bearer
 ```
 
 ## Basic Usage
 
 ```dart
-final dio = Dio();
-
-dio.interceptors.add(
-  DioBearer(
-    accessTokenPaths: ['/login', '/register'],
-  ),
+final dio = Dio(BaseOptions(baseUrl: 'https://api.example.com/api/v1'));
+final dioBearer = DioBearer(
+  accessTokenPaths: ['/login', '/register'],
 );
+
+dio.interceptors.add(dioBearer);
 ```
 
 ## With Refresh Token
 
 ```dart
-final refreshClient = Dio(BaseOptions(baseUrl: 'https://api.example.com'));
+final refreshClient = Dio(BaseOptions(baseUrl: 'https://api.example.com/api/v1'));
 
-final dio = Dio(BaseOptions(baseUrl: 'https://api.example.com'));
-
-dio.interceptors.add(
-  DioBearer(
-    handleRefreshToken: true,
-    accessTokenPaths: ['/login', '/register'],
-    refreshTokenPath: '/auth/refresh',
-    refreshTokenMethod: 'POST',
-    refreshTokenClient: refreshClient,
-  ),
+final dio = Dio(BaseOptions(baseUrl: 'https://api.example.com/api/v1'));
+final dioBearer = DioBearer(
+  handleRefreshToken: true,
+  accessTokenPaths: ['/login', '/register'],
+  refreshTokenPath: '/auth/refresh',
+  refreshTokenMethod: 'POST',
+  refreshTokenClient: refreshClient,
 );
+dio.interceptors.add(dioBearer);
 ```
 
 ## Configuration
