@@ -1,3 +1,7 @@
+## 0.0.3
+
+* Fix bug: Refresh token client don't use base url
+
 ## 0.0.2
 
 * Don't refresh the token if request path is in `accessTokenPaths`.

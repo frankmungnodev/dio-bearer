@@ -205,6 +205,7 @@ class DioBearer extends QueuedInterceptor {
       final tokenData = {_refreshTokenKey: refreshToken};
       final response = await _refreshTokenClient!.fetch(
         RequestOptions(
+          baseUrl: _refreshTokenClient.options.baseUrl,
           path: _refreshTokenPath!,
           method: _refreshTokenMethod,
           // Use queryParameters for GET, data for other methods
